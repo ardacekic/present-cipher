@@ -15,6 +15,7 @@
 #define ARRAY_SIZE 10
 #define TOTAL_BITS (ARRAY_SIZE * 8)
 #define LEFTROTATE 61
+#define CRYPTODEBUG 0
 
 void printArray(uint8_t* array, size_t size) {
     for (size_t i = 0; i < size; ++i) {
@@ -246,19 +247,21 @@ void CBCModeOperation(uint8_t *key, uint64_t *hex_array, size_t arraySize, uint6
         uint64_t cbc_round_result = ciphertext[i-1];
         presentENC(key,round_keys,&cbc_round_result);
         ciphertext[i] = hex_array[i] ^ cbc_round_result;
+        if (CRYPTODEBUG){
+            printf("calculated cipher : %llx \n",ciphertext[i]);
+        }
     }
-    
 }
 
 void doquesttwo(){
-    char* hexString = strdup("436968616e6769722054657a63616e"); // Example hex string (not multiple of 64 bits)
+    char* hexString = strdup("417264612043656B6963"); // Example hex string (not multiple of 64 bits)
     size_t hexLen = strlen(hexString);
     size_t arraySize = (hexLen * 4 + 63) / 64; // Calculate the required size for uint64 array
     
     uint64_t *array = malloc(arraySize * sizeof(uint64_t));
     hexStringToUint64Array(hexString, array, arraySize);
 
-    printf("Given HEX string with Propper Padin 10*\n");
+    printf("Given HEX string with Propper Pading 10*\n");
     if (array != NULL) {
         // Print the converted array
         for (size_t i = 0; i < arraySize; ++i) {
@@ -276,6 +279,25 @@ void doquesttwo(){
         printf("ciphertext %x : %llx \n",i, ciphertext[i]);
     }
 
+    free(ciphertext);
+    free(array);
+}
+
+void doquestthree(){
+    size_t sizeInBytes = 64 * 1024 * 1024; // 64MB
+    size_t sizeInUint64 = sizeInBytes / sizeof(uint64_t);
+    uint64_t* array = malloc(sizeInUint64 * sizeof(uint64_t));
+    memset(array, 0, sizeInUint64 * sizeof(uint64_t));
+    
+    uint8_t key[ARRAY_SIZE] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint64_t IV = 0; //generateRandom64Bit();
+    uint64_t* ciphertext = (uint64_t*)malloc(sizeInUint64 * sizeof(uint64_t));
+    memset(ciphertext, 0, sizeInUint64 * sizeof(uint64_t));
+    printf("CBC 64MB Encripton is started Padding is not issued...\n");
+    CBCModeOperation(key,array,sizeInUint64,&IV,ciphertext);
+    printf("CBC 64MB is done...\n");
+    free(ciphertext);
+    free(array);
 }
 
 int main() {
@@ -288,6 +310,11 @@ int main() {
     printf("Calculating Question Two \n");
     printf("------------------------\n");
             doquesttwo();
+    printf("------------------------\n");
+    printf("\n");
+    printf("Calculating Question Three \n");
+    printf("------------------------\n");
+            doquestthree();
     printf("------------------------\n");
 
     return 0;
