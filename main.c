@@ -24,20 +24,13 @@ void printArray(uint8_t* array, size_t size) {
     printf("\n");
 }
 uint64_t generateRandom64Bit() {
-    // Seed the random number generator for different results each run
     srand((unsigned int)time(NULL));
-
     uint64_t randomValue;
-
-    // Generate the upper 32 bits
     randomValue = (uint64_t)rand() << 32;
-    // Generate the lower 32 bits and combine them with the upper 32 bits
     randomValue |= (uint64_t)rand();
-
     return randomValue;
 }
 
-// Function to convert a single hex character to a 4-bit number
 uint8_t hexCharToValue(char c) {
     if (c >= '0' && c <= '9') return c - '0';
     if (c >= 'A' && c <= 'F') return 10 + c - 'A';
@@ -45,7 +38,6 @@ uint8_t hexCharToValue(char c) {
     return 0;
 }
 
-// Function to convert hex string to uint64 array and apply padding
 void hexStringToUint64Array(const char *hexString, uint64_t *array, size_t arraySize) {
     size_t hexLen = strlen(hexString);
     size_t uint64Count = 0;
@@ -64,7 +56,6 @@ void hexStringToUint64Array(const char *hexString, uint64_t *array, size_t array
         }
     }
 
-    // Apply padding if there is an incomplete uint64 at the end
     if (bitsFilled > 0) {
         // Add the padding bit (1 followed by zeros)
         currentNumber = (currentNumber << (64 - bitsFilled)) | (1ULL << (63 - bitsFilled));
@@ -122,7 +113,6 @@ void sBoxLayer(uint64_t *block){
     uint64_to_uint8_array(*block,bytearray);
 
     for(int position = 0; position < 8; position++){
-        //printf(" array %llx\n", bytearray[position]);
         uint8_t upper_nibble = (bytearray[position] >> 4) & 0x0F;
         uint8_t lower_nibble = (bytearray[position]) & 0x0F;
 
@@ -254,9 +244,9 @@ void CBCModeOperation(uint8_t *key, uint64_t *hex_array, size_t arraySize, uint6
 }
 
 void doquesttwo(){
-    char* hexString = strdup("417264612043656B6963"); // Example hex string (not multiple of 64 bits)
+    char* hexString = strdup("417264612043656B6963");
     size_t hexLen = strlen(hexString);
-    size_t arraySize = (hexLen * 4 + 63) / 64; // Calculate the required size for uint64 array
+    size_t arraySize = (hexLen * 4 + 63) / 64; 
     
     uint64_t *array = malloc(arraySize * sizeof(uint64_t));
     hexStringToUint64Array(hexString, array, arraySize);
