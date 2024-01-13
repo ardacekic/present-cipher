@@ -64,7 +64,7 @@ void sBoxLayer(uint64_t *block){
     uint64_to_uint8_array(*block,bytearray);
 
     for(int position = 0; position < 8; position++){
-        printf(" array %llx\n", bytearray[position]);
+        //printf(" array %llx\n", bytearray[position]);
         uint8_t upper_nibble = (bytearray[position] >> 4) & 0x0F;
         uint8_t lower_nibble = (bytearray[position]) & 0x0F;
 
@@ -84,7 +84,7 @@ void sBoxLayer(uint64_t *block){
     uint8_array_to_uint64(bytearray,&result);
 
     *block = result;
-    printf(" sbox %llx\n", *block);
+    //printf(" sbox %llx\n", *block);
 }
 
 void rotateLeft(uint8_t* array, size_t size, unsigned int rotationCount) {
@@ -106,7 +106,7 @@ void xorBits(uint8_t* key, uint8_t round){ ///          0     1      2    3     
     uint8_t k15 = (key[8] >> 7) & 0x01; // 7th bit of key
     uint8_t extractedBits = (k15) | (k16 << 1) | (k17 << 2) | (k18 << 3) | (k19 << 4);
     uint8_t result = extractedBits ^ round;
-    //printf("extrated bits %x \n", extractedBits);
+    ////printf("extrated bits %x \n", extractedBits);
     key[7] = (key[7] & 0xF0) | ((result >> 1) & 0x0F); 
     key[8] = (key[8] & 0x7F) | ((result & 0x01) << 7); 
 }
@@ -131,29 +131,32 @@ void generateRoundKeys(uint8_t *key, uint8_t *round_keys[]){
 void addRoundKey(uint8_t *roundKey, uint64_t *state){
     uint64_t result = 0;
     uint8_array_to_uint64(roundKey,&result);
-    printf("state %llx\n", *state);
+    //printf("state %llx\n", *state);
     *state = result ^ *state;
-    printf("%llx\n", *state);
+    //printf("%llx\n", *state);
 };
 
 void permutationLayer(uint64_t *state){
     uint64_t input = *state;
     permute_bits(input,state);
-    printf("%llx\n",*state);
+
 };
 
 void presentENC(uint8_t *key, uint8_t *round_keys[],uint64_t *state){
     generateRoundKeys(key,round_keys);
     for(int i = 0; i < ROUNDS; i++){
-        addRoundKey(round_keys[i],&state);
-        sBoxLayer(&state);
-        permutationLayer(&state);
+        addRoundKey(round_keys[i],state);
+        sBoxLayer(state);
+        permutationLayer(state);
     }
-    addRoundKey(round_keys[ROUNDS],&state);
+    addRoundKey(round_keys[ROUNDS],state);
 }
 
-int main() {
+void CBCModeOperation(){
+    
+}
 
+void doquestone(){
     uint64_t plaintext = 0;
     uint64_t ciphertext = 0;
     ciphertext = plaintext;
@@ -164,21 +167,54 @@ int main() {
         round_keys[i] = (uint8_t *)malloc(ARRAY_SIZE * sizeof(uint8_t));
     }
 
-    //presentENC(key,round_keys,ciphertext);
-
-    generateRoundKeys(key,round_keys);
-    for(int i = 0; i < 2; i++){
-        printf("round key :\n");
-        printArray(round_keys[i],10);
-        addRoundKey(round_keys[i],&ciphertext);
-        sBoxLayer(&ciphertext);
-        permutationLayer(&ciphertext);
-    }
-    //addRoundKey(round_keys[ROUNDS],&ciphertext);
+    presentENC(key,round_keys,&ciphertext);
+    printf("Given Key : ");
+    printArray(key,10);
+    printf("Given Plain Text : ");    
+    printf("%llx\n",plaintext);
+    printf("Resulting Cipher Text : ");    
+    printf("%llx\n",ciphertext);
 
     for(int i = 0; i < ROUNDS + 1; i++) {
         free(round_keys[i]);
     }
+}
+
+void doquesttwo(){
+    uint64_t plaintext = 0;
+    uint64_t ciphertext = 0;
+    ciphertext = plaintext;
+    uint8_t key[ARRAY_SIZE] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint8_t *round_keys[ROUNDS + 1];
+
+    for(int i = 0; i < ROUNDS + 1; i++) {
+        round_keys[i] = (uint8_t *)malloc(ARRAY_SIZE * sizeof(uint8_t));
+    }
+
+    presentENC(key,round_keys,&ciphertext);
+    printf("Given Key : ");
+    printArray(key,10);
+    printf("Given Plain Text : ");    
+    printf("%llx\n",plaintext);
+    printf("Resulting Cipher Text : ");    
+    printf("%llx\n",ciphertext);
+
+    for(int i = 0; i < ROUNDS + 1; i++) {
+        free(round_keys[i]);
+    }
+}
+
+int main() {
+    printf("\n");
+    printf("Calculating Question One \n");
+    printf("------------------------\n");
+    doquestone();
+    printf("------------------------\n");
+    printf("\n");
+    printf("Calculating Question Two \n");
+    printf("------------------------\n");
+    doquesttwo();
+    printf("------------------------\n");
 
     return 0;
 }
