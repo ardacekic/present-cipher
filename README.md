@@ -13,7 +13,7 @@
 ------------
 #### PERFORMANCE COUNTER ON 64MB DATA ENCRIPTON
 - On MacBook Pro (13-inch, 2022) Apple M2 @ 3.5 GHz (8 cores)
-it takes nearly 5 minutes to do encription of 64MB of data .
+it takes nearly 5 minutes to do encryption of 64MB of data .
 (4min43sec)
 ------------
 
