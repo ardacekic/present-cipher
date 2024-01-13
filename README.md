@@ -4,18 +4,19 @@
 - This repo contains PRESENT block cipher encription algorithm implemented in C language.
 - For using over block size messages, CBC mode implemented.
 - Run the implementation by using given run.sh bash script.
-`    ./run.sh
-`
+`./run.sh`
 - Question 1 to 3 will be automaticaly run and will be print the result in terminal.
 - 64MB of data initilized as 0.
 - User may rewrite the main code to use vanilla.
-Created by Arda CEKIC
+- Created by Arda CEKIC
+
 ------------
 #### PERFORMANCE COUNTER ON 64MB DATA ENCRIPTON
 - On MacBook Pro (13-inch, 2022) Apple M2 @ 3.5 GHz (8 cores)
 it takes nearly 5 minutes to do encription of 64MB of data .
 (4min43sec)
 ------------
+
 #### One sample for question report:
 
 ````bash
