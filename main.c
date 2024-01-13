@@ -20,6 +20,23 @@ const uint8_t SBOX[16] = {
     0x0C, 0x05, 0x06, 0x0B, 0x09, 0x00, 0x0A, 0x0D, 0x03, 0x0E, 0x0F, 0x08, 0x04, 0x07, 0x01, 0x02
 };
 
+uint8_t permutation[64] = {
+    0, 16, 32, 48, 1, 17, 33, 49, 2, 18, 34, 50, 3, 19, 35, 51,
+    4, 20, 36, 52, 5, 21, 37, 53, 6, 22, 38, 54, 7, 23, 39, 55,
+    8, 24, 40, 56, 9, 25, 41, 57, 10, 26, 42, 58, 11, 27, 43, 59,
+    12, 28, 44, 60, 13, 29, 45, 61, 14, 30, 46, 62, 15, 31, 47, 63
+};
+
+void permute_bits(uint64_t input, uint64_t *output) {
+    uint64_t inter = 0;
+    for (int i = 0; i < 64; ++i) {
+        if (input & (1ULL << i)) { // Check if the i-th bit of input is set
+            inter |= (1ULL << permutation[i]); // Set the P(i)-th bit of output
+        }
+    }
+    *output = inter;
+}
+
 void sBoxLayerKeyGeneration(uint8_t* key){
     uint8_t upper_nibble = (key[0] >> 4) & 0x0F;
     uint8_t sbox_val =  SBOX[upper_nibble];
@@ -28,35 +45,46 @@ void sBoxLayerKeyGeneration(uint8_t* key){
     key[0] = shifted_input | cleared_value;
 }
 
-void sBoxLayer(uint64_t *block){
-    uint8_t array[8];
-    uint64_t result;
+void uint64_to_uint8_array(uint64_t value, uint8_t *array) {
     for (int i = 0; i < 8; i++) {
-        array[i] = (*block >> (8 * i)) & 0xFF;
+        array[i] = (value >> (8 * (7 - i))) & 0xFF;
     }
-    
-    for(int position = 0; position < 8; position++){
+}
 
-        uint8_t upper_nibble = (array[position] >> 4) & 0x0F;
-        uint8_t lower_nibble = (array[position]) & 0x0F;
+void uint8_array_to_uint64(uint8_t *array, uint64_t *value) {
+    *value = 0; // Reset the value
+    for (int i = 0; i < 8; i++) {
+        *value |= ((uint64_t)array[i]) << (8 * (7 - i));   
+    }
+}
+
+void sBoxLayer(uint64_t *block){
+    uint8_t bytearray[8];
+    uint64_t result =0;
+    uint64_to_uint8_array(*block,bytearray);
+
+    for(int position = 0; position < 8; position++){
+        printf(" array %llx\n", bytearray[position]);
+        uint8_t upper_nibble = (bytearray[position] >> 4) & 0x0F;
+        uint8_t lower_nibble = (bytearray[position]) & 0x0F;
 
         uint8_t sbox_val_upper =  SBOX[upper_nibble];
         uint8_t sbox_val_lower =  SBOX[lower_nibble];
 
-        uint8_t cleared_value_upper = array[position] & 0x0F;
-        uint8_t shifted_input_upper = cleared_value_upper << 4;
+        uint8_t cleared_value_upper = bytearray[position] & 0x00;
+        uint8_t shifted_input_upper = sbox_val_upper << 4;
 
-        uint8_t cleared_value_lower = array[position] & 0xF0;
-        uint8_t shifted_input_lower = cleared_value_lower >> 4;
+        uint8_t cleared_value_lower = bytearray[position] & 0x00;
+        uint8_t shifted_input_lower = sbox_val_lower;
 
-        array[position] = shifted_input_upper | cleared_value_upper | cleared_value_lower  | shifted_input_lower;
+
+        bytearray[position] = shifted_input_upper | cleared_value_upper | cleared_value_lower | shifted_input_lower;
     }
 
-    for (int i = 0; i < 8; i++) {
-        result |= ((uint64_t)array[i]) << (8 * (8 - 1 - i));
-    }
+    uint8_array_to_uint64(bytearray,&result);
 
-    block = result;
+    *block = result;
+    printf(" sbox %llx\n", *block);
 }
 
 void rotateLeft(uint8_t* array, size_t size, unsigned int rotationCount) {
@@ -101,15 +129,17 @@ void generateRoundKeys(uint8_t *key, uint8_t *round_keys[]){
 };
 
 void addRoundKey(uint8_t *roundKey, uint64_t *state){
-    uint64_t roundKey64 = 0;
-    for (int i = 0; i < 8; i++) {
-        roundKey64 |= ((uint64_t)roundKey[i]) << (8 * (8 - 1 - i));
-    }
-    *state = roundKey64 ^ *state;
+    uint64_t result = 0;
+    uint8_array_to_uint64(roundKey,&result);
+    printf("state %llx\n", *state);
+    *state = result ^ *state;
+    printf("%llx\n", *state);
 };
 
 void permutationLayer(uint64_t *state){
-
+    uint64_t input = *state;
+    permute_bits(input,state);
+    printf("%llx\n",*state);
 };
 
 void presentENC(uint8_t *key, uint8_t *round_keys[],uint64_t *state){
@@ -134,7 +164,17 @@ int main() {
         round_keys[i] = (uint8_t *)malloc(ARRAY_SIZE * sizeof(uint8_t));
     }
 
-    presentENC(key,round_keys,ciphertext);
+    //presentENC(key,round_keys,ciphertext);
+
+    generateRoundKeys(key,round_keys);
+    for(int i = 0; i < 2; i++){
+        printf("round key :\n");
+        printArray(round_keys[i],10);
+        addRoundKey(round_keys[i],&ciphertext);
+        sBoxLayer(&ciphertext);
+        permutationLayer(&ciphertext);
+    }
+    //addRoundKey(round_keys[ROUNDS],&ciphertext);
 
     for(int i = 0; i < ROUNDS + 1; i++) {
         free(round_keys[i]);
