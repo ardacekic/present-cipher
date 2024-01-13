@@ -1,8 +1,10 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <string.h>
 #include <sys/types.h>
 #include <sys/sysctl.h>
+#include <time.h>
 
 //This deffinations are for 80BIT operation
 //128 bit operation is not implemented AC
@@ -19,6 +21,56 @@ void printArray(uint8_t* array, size_t size) {
         printf("%02X ", array[i]);
     }
     printf("\n");
+}
+uint64_t generateRandom64Bit() {
+    // Seed the random number generator for different results each run
+    srand((unsigned int)time(NULL));
+
+    uint64_t randomValue;
+
+    // Generate the upper 32 bits
+    randomValue = (uint64_t)rand() << 32;
+    // Generate the lower 32 bits and combine them with the upper 32 bits
+    randomValue |= (uint64_t)rand();
+
+    return randomValue;
+}
+
+// Function to convert a single hex character to a 4-bit number
+uint8_t hexCharToValue(char c) {
+    if (c >= '0' && c <= '9') return c - '0';
+    if (c >= 'A' && c <= 'F') return 10 + c - 'A';
+    if (c >= 'a' && c <= 'f') return 10 + c - 'a';
+    return 0;
+}
+
+// Function to convert hex string to uint64 array and apply padding
+void hexStringToUint64Array(const char *hexString, uint64_t *array, size_t arraySize) {
+    size_t hexLen = strlen(hexString);
+    size_t uint64Count = 0;
+    uint64_t currentNumber = 0;
+    int bitsFilled = 0;
+
+    for (size_t i = 0; i < hexLen; i++) {
+        uint8_t value = hexCharToValue(hexString[i]);
+        currentNumber = (currentNumber << 4) | value;
+        bitsFilled += 4;
+
+        if (bitsFilled == 64) {
+            array[uint64Count++] = currentNumber;
+            currentNumber = 0;
+            bitsFilled = 0;
+        }
+    }
+
+    // Apply padding if there is an incomplete uint64 at the end
+    if (bitsFilled > 0) {
+        // Add the padding bit (1 followed by zeros)
+        currentNumber = (currentNumber << (64 - bitsFilled)) | (1ULL << (63 - bitsFilled));
+        if (uint64Count < arraySize) {
+            array[uint64Count] = currentNumber;
+        }
+    }
 }
 
 const uint8_t SBOX[16] = {
@@ -157,10 +209,6 @@ void presentENC(uint8_t *key, uint8_t *round_keys[],uint64_t *state){
     addRoundKey(round_keys[ROUNDS],state);
 }
 
-void CBCModeOperation(){
-    
-}
-
 void doquestone(){
     uint64_t plaintext = 0;
     uint64_t ciphertext = 0;
@@ -185,8 +233,49 @@ void doquestone(){
     }
 }
 
+void CBCModeOperation(uint8_t *key, uint64_t *hex_array, size_t arraySize, uint64_t *IV, uint64_t *ciphertext){
+    uint8_t *round_keys[ROUNDS + 1];
+    for(int i = 0; i < ROUNDS + 1; i++) {
+        round_keys[i] = (uint8_t *)malloc(ARRAY_SIZE * sizeof(uint8_t));
+    }
+    //first enc with given IV
+    presentENC(key,round_keys,IV);
+    ciphertext[0] = hex_array[0] ^ *IV;
+
+    for(int i = 1; i < arraySize; i++){
+        uint64_t cbc_round_result = ciphertext[i-1];
+        presentENC(key,round_keys,&cbc_round_result);
+        ciphertext[i] = hex_array[i] ^ cbc_round_result;
+    }
+    
+}
+
 void doquesttwo(){
-            
+    char* hexString = strdup("436968616e6769722054657a63616e"); // Example hex string (not multiple of 64 bits)
+    size_t hexLen = strlen(hexString);
+    size_t arraySize = (hexLen * 4 + 63) / 64; // Calculate the required size for uint64 array
+    
+    uint64_t *array = malloc(arraySize * sizeof(uint64_t));
+    hexStringToUint64Array(hexString, array, arraySize);
+
+    printf("Given HEX string with Propper Padin 10*\n");
+    if (array != NULL) {
+        // Print the converted array
+        for (size_t i = 0; i < arraySize; ++i) {
+            printf("array[%zu] = 0x%llx\n", i, array[i]);
+        }
+    }
+
+    uint8_t key[ARRAY_SIZE] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+    uint64_t IV = 0; //generateRandom64Bit();
+    uint64_t* ciphertext = (uint64_t*)malloc(arraySize * sizeof(uint64_t));
+
+    CBCModeOperation(key,array,arraySize,&IV,ciphertext);
+    printf("CBC Resulting Ciphertext\n");
+    for(int i = 0; i<arraySize; i++){
+        printf("ciphertext %x : %llx \n",i, ciphertext[i]);
+    }
+
 }
 
 int main() {
