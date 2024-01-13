@@ -1,13 +1,18 @@
 #include <stdio.h>
 #include <stdint.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/sysctl.h>
+
+//This deffinations are for 80BIT operation
+//128 bit operation is not implemented AC
 
 #define ROUNDS 31      
 #define BLOCK_SIZE 64
 #define KEY_SIZE 80
 #define ARRAY_SIZE 10
 #define TOTAL_BITS (ARRAY_SIZE * 8)
-
+#define LEFTROTATE 61
 
 void printArray(uint8_t* array, size_t size) {
     for (size_t i = 0; i < size; ++i) {
@@ -20,7 +25,7 @@ const uint8_t SBOX[16] = {
     0x0C, 0x05, 0x06, 0x0B, 0x09, 0x00, 0x0A, 0x0D, 0x03, 0x0E, 0x0F, 0x08, 0x04, 0x07, 0x01, 0x02
 };
 
-uint8_t permutation[64] = {
+uint8_t permutation[BLOCK_SIZE] = {
     0, 16, 32, 48, 1, 17, 33, 49, 2, 18, 34, 50, 3, 19, 35, 51,
     4, 20, 36, 52, 5, 21, 37, 53, 6, 22, 38, 54, 7, 23, 39, 55,
     8, 24, 40, 56, 9, 25, 41, 57, 10, 26, 42, 58, 11, 27, 43, 59,
@@ -29,7 +34,7 @@ uint8_t permutation[64] = {
 
 void permute_bits(uint64_t input, uint64_t *output) {
     uint64_t inter = 0;
-    for (int i = 0; i < 64; ++i) {
+    for (int i = 0; i < BLOCK_SIZE; ++i) {
         if (input & (1ULL << i)) { // Check if the i-th bit of input is set
             inter |= (1ULL << permutation[i]); // Set the P(i)-th bit of output
         }
@@ -112,17 +117,17 @@ void xorBits(uint8_t* key, uint8_t round){ ///          0     1      2    3     
 }
 
 void generateRoundKeys(uint8_t *key, uint8_t *round_keys[]){
-    uint8_t resedual_key[10];
-    for (int i = 0; i < 10; i++) {
+    uint8_t resedual_key[ARRAY_SIZE];
+    for (int i = 0; i < ARRAY_SIZE; i++) {
         round_keys[0][i] = key[i];
         resedual_key[i] = key[i];
     }
 
     for(int i = 1; i<=ROUNDS; i++){
-        rotateLeft(resedual_key, ARRAY_SIZE , 61);
+        rotateLeft(resedual_key, ARRAY_SIZE , LEFTROTATE);
         sBoxLayerKeyGeneration(resedual_key);
         xorBits(resedual_key,i);
-        for (int j = 0; j < 10; j++) {
+        for (int j = 0; j < ARRAY_SIZE; j++) {
             round_keys[i][j] = resedual_key[j];
         }
     }
@@ -181,39 +186,19 @@ void doquestone(){
 }
 
 void doquesttwo(){
-    uint64_t plaintext = 0;
-    uint64_t ciphertext = 0;
-    ciphertext = plaintext;
-    uint8_t key[ARRAY_SIZE] = {0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-    uint8_t *round_keys[ROUNDS + 1];
-
-    for(int i = 0; i < ROUNDS + 1; i++) {
-        round_keys[i] = (uint8_t *)malloc(ARRAY_SIZE * sizeof(uint8_t));
-    }
-
-    presentENC(key,round_keys,&ciphertext);
-    printf("Given Key : ");
-    printArray(key,10);
-    printf("Given Plain Text : ");    
-    printf("%llx\n",plaintext);
-    printf("Resulting Cipher Text : ");    
-    printf("%llx\n",ciphertext);
-
-    for(int i = 0; i < ROUNDS + 1; i++) {
-        free(round_keys[i]);
-    }
+            
 }
 
 int main() {
     printf("\n");
     printf("Calculating Question One \n");
     printf("------------------------\n");
-    doquestone();
+            doquestone();
     printf("------------------------\n");
     printf("\n");
     printf("Calculating Question Two \n");
     printf("------------------------\n");
-    doquesttwo();
+            doquesttwo();
     printf("------------------------\n");
 
     return 0;
