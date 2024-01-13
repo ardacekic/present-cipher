@@ -20,20 +20,20 @@ it takes nearly 5 minutes to do encryption of 64MB of data .
 #### One sample for question report:
 
 ````bash
-ardacekic@Ardas-MacBook-Pro c_code % ./run.sh
-The current start time is: Sun Jan 14 00:38:09 +03 2024
+ardacekic@Ardas-MacBook-Pro c_code % ./run.sh                                                             
+The current start time is: Sun Jan 14 01:11:23 +03 2024
 gcc -Wall main.c -o main
 
 Calculating Question One 
 ------------------------
 Given Key : 00 00 00 00 00 00 00 00 00 00 
-Given Plain Text : 0
-Resulting Cipher Text : 5579c1387b228445
+Given Plaintext : 0
+Resulting Ciphertext : 5579c1387b228445
 ------------------------
 
 Calculating Question Two 
 ------------------------
-Given HEX string with Propper Pading 10*
+Given HEX string with Proper Padding 10*
 array[0] = 0x417264612043656b
 array[1] = 0x6963800000000000
 CBC Resulting Ciphertext
@@ -43,8 +43,8 @@ ciphertext 1 : f78427afcb351681
 
 Calculating Question Three 
 ------------------------
-CBC 64MB Encripton is started Padding is not issued...
+CBC 64MB Encrypton is started Padding is not issued...
 CBC 64MB is done...
 ------------------------
-The current finish time is: Sun Jan 14 00:42:52 +03 2024
+The current finish time is: Sun Jan 14 01:16:08 +03 2024
 ````

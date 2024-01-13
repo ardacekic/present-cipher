@@ -214,9 +214,9 @@ void doquestone(){
     presentENC(key,round_keys,&ciphertext);
     printf("Given Key : ");
     printArray(key,10);
-    printf("Given Plain Text : ");    
+    printf("Given Plaintext : ");    
     printf("%llx\n",plaintext);
-    printf("Resulting Cipher Text : ");    
+    printf("Resulting Ciphertext : ");    
     printf("%llx\n",ciphertext);
 
     for(int i = 0; i < ROUNDS + 1; i++) {
@@ -251,7 +251,7 @@ void doquesttwo(){
     uint64_t *array = malloc(arraySize * sizeof(uint64_t));
     hexStringToUint64Array(hexString, array, arraySize);
 
-    printf("Given HEX string with Propper Pading 10*\n");
+    printf("Given HEX string with Proper Padding 10*\n");
     if (array != NULL) {
         // Print the converted array
         for (size_t i = 0; i < arraySize; ++i) {
@@ -283,7 +283,7 @@ void doquestthree(){
     uint64_t IV = 0; //generateRandom64Bit();
     uint64_t* ciphertext = (uint64_t*)malloc(sizeInUint64 * sizeof(uint64_t));
     memset(ciphertext, 0, sizeInUint64 * sizeof(uint64_t));
-    printf("CBC 64MB Encripton is started Padding is not issued...\n");
+    printf("CBC 64MB Encrypton is started Padding is not issued...\n");
     CBCModeOperation(key,array,sizeInUint64,&IV,ciphertext);
     printf("CBC 64MB is done...\n");
     free(ciphertext);
