@@ -1,4 +1,5 @@
 *.out
 debug.off
 *.txt
-main
+chisel-tutorial
+chiseltest
