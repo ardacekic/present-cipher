@@ -2,6 +2,6 @@
 current_time=$(date)
 echo "The current start time is: $current_time"
 make
-./present
+./main
 current_time=$(date)
 echo "The current finish time is: $current_time"

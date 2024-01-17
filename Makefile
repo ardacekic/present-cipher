@@ -3,7 +3,7 @@ CC=gcc
 CFLAGS=-Wall
 
 # Target executable name
-TARGET=present
+TARGET=main
 
 # Default target
 all: $(TARGET)

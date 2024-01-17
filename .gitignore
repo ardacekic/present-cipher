@@ -3,3 +3,6 @@ debug.off
 *.txt
 chisel-tutorial
 chiseltest
+main
+*.pages
+homework2.pdf
