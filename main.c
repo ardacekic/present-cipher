@@ -244,7 +244,7 @@ void CBCModeOperation(uint8_t *key, uint64_t *hex_array, size_t arraySize, uint6
 }
 
 void doquesttwo(){
-    char* hexString = strdup("417264612043656B6963");
+    char hexString[] = "417264612043656B6963";
     size_t hexLen = strlen(hexString);
     size_t arraySize = (hexLen * 4 + 63) / 64; 
     
